@@ -1,0 +1,6 @@
+{
+  "name": "OnnCall - On-Demand Home Services",
+  "description": "Book trusted local home services including painters, plumbers, electricians, carpenters, AC repair and more with real-time status tracking, messaging, and seamless booking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

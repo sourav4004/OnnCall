@@ -10,7 +10,6 @@ interface ProfileTabProps {
   onOpenHelpSupport: () => void;
   onOpenEmergency: () => void;
   onSwitchToProMode: () => void;
-  onSwitchRole: () => void;
   onOpenPrivacyTerms: (title: string) => void;
   onToast: (msg: string) => void;
   onLogout: () => void;
@@ -24,7 +23,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onOpenHelpSupport,
   onOpenEmergency,
   onSwitchToProMode,
-  onSwitchRole,
   onOpenPrivacyTerms,
   onToast,
   onLogout,
@@ -36,10 +34,12 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <div className="flex items-center justify-between">
           <h1 className="text-[18px] font-bold text-[#111111] tracking-tight">Account</h1>
           <button
-            onClick={onSwitchRole}
-            className="px-2.5 py-1 rounded-xl bg-[#F5F5F5] border border-[#E5E5E5] text-[11.5px] font-bold text-[#111111] hover:bg-[#EBEBEB] transition-colors"
+            onClick={onLogout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FBEAEA] text-[#C23B3B] text-[12px] font-bold hover:bg-[#F7DADA] active:scale-95 transition-all shadow-xs"
+            title="Log out from OnnCall"
           >
-            Switch Role
+            <AppIcon name="logout" size={13} />
+            <span>Logout</span>
           </button>
         </div>
 
@@ -202,7 +202,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-[#FBEAEA] text-[#C23B3B] text-[13.5px] font-bold hover:bg-[#F7DADA] active:scale-98 transition-all"
         >
           <AppIcon name="logout" size={18} />
-          Log Out / Switch Account
+          Log Out
         </button>
 
         <p className="text-center text-[11px] text-[#888888]">

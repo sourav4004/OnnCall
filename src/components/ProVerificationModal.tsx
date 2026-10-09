@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
 import { UserSession } from '../types';
-import { AppIcon } from '../components/AppIcon';
+import { AppIcon } from './AppIcon';
 
 interface ProVerificationModalProps {
   userSession?: UserSession;
@@ -40,7 +49,6 @@ export const ProVerificationModal: React.FC<ProVerificationModalProps> = ({
   if (!isOpen) return null;
 
   const handleNext = () => {
-    // Mark current step as completed
     setStepStatus((prev) => ({ ...prev, [step]: 'completed' }));
 
     if (step < 4) {
@@ -54,331 +62,556 @@ export const ProVerificationModal: React.FC<ProVerificationModalProps> = ({
   };
 
   const handleSkipCurrentStep = () => {
-    // Mark current step as skipped
     setStepStatus((prev) => ({ ...prev, [step]: 'skipped' }));
     const stepNames: Record<number, string> = {
       1: 'Identity Verification',
-      2: 'Toolkit Checklist',
-      3: 'Payment & Bank Details',
-      4: 'Code of Conduct',
+      2: 'Bank & Payouts',
+      3: 'Trade Credentials',
+      4: 'Document Uploads',
     };
-
-    onToast(`Skipped ${stepNames[step]}. You can add this later.`);
+    onToast(`Skipped ${stepNames[step]}. You can update this anytime.`);
 
     if (step < 4) {
       setStep((prev) => (prev + 1) as any);
     } else {
       onComplete();
+      onToast('Profile setup finished with skipped items marked.');
       onClose();
     }
   };
 
+  const handleSkipEntireVerification = () => {
+    try {
+      localStorage.setItem('oncall_pro_verification_dismissed', 'true');
+    } catch {}
+    onToast('You can complete profile verification later from Account settings.');
+    onClose();
+  };
+
+  const stepsList = [
+    { num: 1, title: 'ID Proof', subtitle: 'Aadhaar / Govt ID' },
+    { num: 2, title: 'Payout', subtitle: 'Bank / UPI' },
+    { num: 3, title: 'Trade Skills', subtitle: 'Experience' },
+    { num: 4, title: 'Docs', subtitle: 'Selfie & Proof' },
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-250">
-        {/* Header */}
-        <div className="p-5 pb-3 border-b border-[#F0F0F0] flex items-center justify-between bg-white shrink-0">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#EAB308]" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#CA8A04]">
-                STEP {step} OF 4
-              </span>
-              {stepStatus[step] === 'skipped' && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#F5F5F5] text-[#888888] border border-[#E5E5E5]">
-                  Currently Skipped
-                </span>
-              )}
-            </div>
-            <h2 className="text-[17px] font-bold text-[#111111] mt-0.5">
-              {step === 1 && 'Government Identity Verification'}
-              {step === 2 && 'Skill Certificate & Tools Checklist'}
-              {step === 3 && 'Payment & Direct Bank Account'}
-              {step === 4 && 'Partner Safety & Code of Conduct'}
-            </h2>
-          </div>
+    <Modal visible={isOpen} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
 
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-[#F5F5F5] text-[#888888] transition-colors"
-            aria-label="Close"
-          >
-            <AppIcon name="close" size={18} />
-          </button>
-        </div>
+        <View style={styles.modalCard}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.shieldIcon}>
+                <AppIcon name="shield" size={18} className="text-[#1E7A34]" />
+              </View>
+              <View>
+                <Text style={styles.title}>Provider Verification</Text>
+                <Text style={styles.subtitle}>
+                  Required for OnnCall Guaranteed Pro Badge
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+              <AppIcon name="close" size={18} className="text-[#6B7280]" />
+            </TouchableOpacity>
+          </View>
 
-        {/* Step Navigation Pill Chips */}
-        <div className="px-5 pt-3 pb-1 shrink-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          {[
-            { num: 1, label: 'Identity' },
-            { num: 2, label: 'Tools' },
-            { num: 3, label: 'Bank Payouts' },
-            { num: 4, label: 'Pledges' },
-          ].map((item) => {
-            const isCurrent = step === item.num;
-            const status = stepStatus[item.num];
-            return (
-              <button
-                key={item.num}
-                onClick={() => setStep(item.num as any)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
-                  isCurrent
-                    ? 'bg-[#111111] text-white'
-                    : status === 'completed'
-                    ? 'bg-[#E9F6EC] text-[#1E7A34] border border-[#1E7A34]/25'
-                    : status === 'skipped'
-                    ? 'bg-[#FEF9C3] text-[#CA8A04] border border-[#EAB308]/30'
-                    : 'bg-[#F5F5F5] text-[#6B6B6B]'
-                }`}
-              >
-                {status === 'completed' ? (
-                  <AppIcon name="check" size={11} />
-                ) : (
-                  <span>{item.num}.</span>
-                )}
-                <span>{item.label}</span>
-                {status === 'skipped' && <span className="opacity-70">(Skip)</span>}
-              </button>
-            );
-          })}
-        </div>
+          {/* Stepper Tabs */}
+          <View style={styles.stepperRow}>
+            {stepsList.map((s) => {
+              const isActive = step === s.num;
+              const isDone = stepStatus[s.num] === 'completed';
+              const isSkipped = stepStatus[s.num] === 'skipped';
 
-        {/* Body Content */}
-        <div className="p-5 overflow-y-auto no-scrollbar space-y-4">
-          {/* STEP 1: GOVT ID & POLICE RECORD */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-[#E9F6EC] border border-[#1E7A34]/20 flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-[#1E7A34] text-white flex items-center justify-center shrink-0 mt-0.5">
-                  <AppIcon name="shield" size={14} />
-                </div>
-                <div className="text-[12px] text-[#1E7A34] leading-relaxed">
-                  <span className="font-bold block">Why is this required?</span>
-                  Verified professionals receive <span className="font-bold">4x more bookings</span> and customer trust priority matching.
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[12px] font-bold text-[#6B6B6B] uppercase tracking-wider block mb-1">
-                  Aadhaar Card Number (12 Digits)
-                </label>
-                <input
-                  type="text"
-                  value={aadhaarNumber}
-                  onChange={(e) => setAadhaarNumber(e.target.value)}
-                  placeholder="xxxx xxxx xxxx"
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#E5E5E5] text-[14px] font-bold text-[#111111] focus:border-[#111111] focus:outline-hidden"
-                />
-              </div>
-
-              <div>
-                <label className="text-[12px] font-bold text-[#6B6B6B] uppercase tracking-wider block mb-1">
-                  PAN Card Number (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={panNumber}
-                  onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
-                  placeholder="ABCDE1234F"
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#E5E5E5] text-[14px] font-bold text-[#111111] uppercase focus:border-[#111111] focus:outline-hidden"
-                />
-              </div>
-
-              {/* Upload Boxes */}
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
-                <div
-                  onClick={() => {
-                    setAadhaarUploaded(!aadhaarUploaded);
-                    onToast('Aadhaar photo updated');
-                  }}
-                  className={`p-3 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
-                    aadhaarUploaded ? 'border-[#1E7A34] bg-[#E9F6EC]/30' : 'border-[#CCCCCC] bg-[#F9F9F9]'
-                  }`}
+              return (
+                <TouchableOpacity
+                  key={s.num}
+                  onPress={() => setStep(s.num as any)}
+                  style={[
+                    styles.stepTab,
+                    isActive && styles.stepTabActive,
+                    isDone && styles.stepTabDone,
+                  ]}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1.5 ${
-                    aadhaarUploaded ? 'bg-[#1E7A34] text-white' : 'bg-[#EAEAEA] text-[#6B6B6B]'
-                  }`}>
-                    <AppIcon name={aadhaarUploaded ? 'check' : 'upload'} size={15} />
-                  </div>
-                  <span className="text-[12px] font-bold text-[#111111]">Aadhaar Front & Back</span>
-                  <span className="text-[10px] text-[#1E7A34] font-semibold mt-0.5">
-                    {aadhaarUploaded ? 'File Attached' : 'Tap to Upload'}
-                  </span>
-                </div>
-
-                <div
-                  onClick={() => {
-                    setSelfieUploaded(!selfieUploaded);
-                    onToast('Live selfie captured');
-                  }}
-                  className={`p-3 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
-                    selfieUploaded ? 'border-[#1E7A34] bg-[#E9F6EC]/30' : 'border-[#CCCCCC] bg-[#F9F9F9]'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1.5 ${
-                    selfieUploaded ? 'bg-[#1E7A34] text-white' : 'bg-[#EAEAEA] text-[#6B6B6B]'
-                  }`}>
-                    <AppIcon name={selfieUploaded ? 'check' : 'camera'} size={15} />
-                  </div>
-                  <span className="text-[12px] font-bold text-[#111111]">Live Worker Selfie</span>
-                  <span className="text-[10px] text-[#1E7A34] font-semibold mt-0.5">
-                    {selfieUploaded ? 'Face Verified' : 'Take Photo'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: TRADE EXPERIENCE & TOOLBOX CHECK */}
-          {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-[12px] font-bold text-[#6B6B6B] uppercase tracking-wider block mb-1">
-                  Years of Practical Experience
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={experienceYears}
-                    onChange={(e) => setExperienceYears(e.target.value)}
-                    className="w-24 h-11 px-3.5 rounded-xl border border-[#E5E5E5] text-[14px] font-bold text-[#111111]"
-                  />
-                  <span className="text-[13px] text-[#6B6B6B] font-medium">years in {userSession?.serviceCategory || 'Home Services'}</span>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E5E5E5] space-y-2.5">
-                <h4 className="text-[13.5px] font-bold text-[#111111]">Mandatory Toolkit Checklist</h4>
-                {[
-                  'Professional standard toolkit (cordless drills, manifold gauge, or roller sets)',
-                  'Safety gloves, protective goggles, and shoe covers for customer homes',
-                  'Floor drop cloths and masking tape for zero-mess cleanup',
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-[12px] text-[#444444]">
-                    <div className="w-4 h-4 rounded-full bg-[#E9F6EC] text-[#1E7A34] flex items-center justify-center shrink-0 mt-0.5">
-                      <AppIcon name="check" size={10} />
-                    </div>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div
-                onClick={() => setToolsChecked(!toolsChecked)}
-                className="flex items-center gap-3 p-3 rounded-2xl bg-[#F9F9F9] border border-[#E5E5E5] cursor-pointer"
-              >
-                <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                  toolsChecked ? 'bg-[#111111] border-[#111111] text-white' : 'border-[#CCCCCC] bg-white'
-                }`}>
-                  {toolsChecked && <AppIcon name="check" size={12} />}
-                </div>
-                <span className="text-[12.5px] font-bold text-[#111111]">
-                  I confirm I own all necessary professional equipment
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: BANK ACCOUNT FOR INSTANT PAYOUTS (WITH DEDICATED SKIP CALLOUT) */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-[#FEF9C3] border border-[#EAB308]/30 flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-[#CA8A04] text-white flex items-center justify-center shrink-0 mt-0.5">
-                  <AppIcon name="star" size={13} className="fill-white" />
-                </div>
-                <div className="text-[12px] text-[#854D0E] leading-relaxed">
-                  <span className="font-bold block">Optional for now</span>
-                  You can skip entering payment details right now and provide your bank account or UPI ID later when withdrawing your earnings.
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[12px] font-bold text-[#6B6B6B] uppercase tracking-wider">
-                    Bank Account Number
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleSkipCurrentStep}
-                    className="text-[11.5px] font-bold text-[#111111] underline hover:text-black"
+                  <Text
+                    style={[
+                      styles.stepNum,
+                      isActive && styles.stepNumActive,
+                      isDone && styles.stepNumDone,
+                    ]}
                   >
-                    Skip Payment Details →
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={bankAccount}
-                  onChange={(e) => setBankAccount(e.target.value)}
-                  placeholder="Enter 12-16 digit account number (Optional)"
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#E5E5E5] text-[14px] font-bold text-[#111111] focus:border-[#111111]"
-                />
-              </div>
+                    {isDone ? '✓' : isSkipped ? '—' : s.num}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.stepTitle,
+                      isActive && styles.stepTitleActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {s.title}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-              <div>
-                <label className="text-[12px] font-bold text-[#6B6B6B] uppercase tracking-wider block mb-1">
-                  Bank IFSC Code
-                </label>
-                <input
-                  type="text"
-                  value={ifscCode}
-                  onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. HDFC0001234 (Optional)"
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#E5E5E5] text-[14px] font-bold text-[#111111] uppercase focus:border-[#111111]"
-                />
-              </div>
+          <ScrollView style={styles.scrollBody} contentContainerStyle={styles.bodyContent}>
+            {/* STEP 1: IDENTITY */}
+            {step === 1 && (
+              <View style={styles.formSection}>
+                <Text style={styles.sectionHeader}>Aadhaar & PAN Verification</Text>
+                <Text style={styles.sectionDesc}>
+                  Enter your official identity details to accept instant customer bookings.
+                </Text>
 
-              <div className="p-3 rounded-xl bg-[#F9F9F9] border border-[#EFEFEF] text-[12px] text-[#6B6B6B]">
-                💰 Customer payments will be held safely in your OnnCall platform wallet until your bank account is connected.
-              </div>
-            </div>
-          )}
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Aadhaar Card Number</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={aadhaarNumber}
+                    onChangeText={setAadhaarNumber}
+                    placeholder="XXXX XXXX XXXX"
+                    keyboardType="numeric"
+                  />
+                </View>
 
-          {/* STEP 4: SERVICE CODE OF CONDUCT */}
-          {step === 4 && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-[#F9F9F9] border border-[#E5E5E5] space-y-2.5">
-                <h4 className="text-[14px] font-bold text-[#111111]">OnnCall Partner Pledges</h4>
-                <div className="space-y-2 text-[12px] text-[#555555]">
-                  <p>✓ <span className="font-semibold text-[#111111]">Punctuality:</span> Arrive at the customer address within the scheduled arrival slot.</p>
-                  <p>✓ <span className="font-semibold text-[#111111]">Standard Rate Integrity:</span> Never charge more than the upfront package bill without customer authorization.</p>
-                  <p>✓ <span className="font-semibold text-[#111111]">Cleanliness Guarantee:</span> Always clean up dust, scrap tape, and spills before concluding the job.</p>
-                </div>
-              </div>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Permanent Account Number (PAN)</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={panNumber}
+                    onChangeText={setPanNumber}
+                    placeholder="e.g. ABCDE1234F"
+                    autoCapitalize="characters"
+                  />
+                </View>
 
-              <div className="p-3.5 rounded-2xl bg-[#E9F6EC] border border-[#1E7A34]/25 text-center">
-                <span className="text-[12.5px] font-bold text-[#1E7A34] block">
-                  🎉 Ready to activate Partner privileges!
-                </span>
-                <span className="text-[11.5px] text-[#1E7A34]/80 mt-0.5 block">
-                  You can accept nearby customer job requests immediately.
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
+                <View style={styles.infoBox}>
+                  <AppIcon name="shield" size={16} className="text-[#1E7A34]" />
+                  <Text style={styles.infoText}>
+                    UIDAI verified with end-to-end cryptographic encryption.
+                  </Text>
+                </View>
+              </View>
+            )}
 
-        {/* Footer Actions with Granular Per-Step Skip */}
-        <div className="p-4 border-t border-[#F0F0F0] bg-white flex items-center justify-between gap-2.5 shrink-0">
-          {/* Step-specific skip button */}
-          <button
-            type="button"
-            onClick={handleSkipCurrentStep}
-            className="px-3.5 py-2.5 rounded-xl border border-[#E5E5E5] bg-[#F9F9F9] text-[12.5px] font-bold text-[#6B6B6B] hover:text-[#111111] hover:bg-[#EFEFEF] transition-colors whitespace-nowrap"
-          >
-            Skip this step
-          </button>
+            {/* STEP 2: BANK / PAYOUT */}
+            {step === 2 && (
+              <View style={styles.formSection}>
+                <Text style={styles.sectionHeader}>Bank Account & Payout Details</Text>
+                <Text style={styles.sectionDesc}>
+                  Where OnnCall will deposit your daily earnings and bonus tips.
+                </Text>
 
-          {/* Primary Submit / Next button */}
-          <button
-            type="button"
-            onClick={handleNext}
-            className="flex-1 h-11 rounded-xl bg-[#111111] text-white text-[13.5px] font-bold hover:bg-black active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-sm"
-          >
-            {step === 4 ? 'Save & Finish' : 'Save & Continue'}
-            <AppIcon name="chevron-right" size={15} />
-          </button>
-        </div>
-      </div>
-    </div>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Bank Account Number</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={bankAccount}
+                    onChangeText={setBankAccount}
+                    placeholder="e.g. 50100492817291"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>IFSC Code</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={ifscCode}
+                    onChangeText={setIfscCode}
+                    placeholder="e.g. HDFC0000240"
+                    autoCapitalize="characters"
+                  />
+                </View>
+
+                <View style={styles.skipNotice}>
+                  <Text style={styles.skipNoticeText}>
+                    Don't have bank details right now? Tap <Text style={styles.boldText}>Skip this Step</Text> below to provide this later before your first cashout.
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* STEP 3: TRADE SKILLS */}
+            {step === 3 && (
+              <View style={styles.formSection}>
+                <Text style={styles.sectionHeader}>Trade Credentials & Experience</Text>
+                <Text style={styles.sectionDesc}>
+                  Highlight your experience and tools to get higher rating tiers.
+                </Text>
+
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Years of Professional Experience</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={experienceYears}
+                    onChangeText={setExperienceYears}
+                    keyboardType="numeric"
+                    placeholder="6"
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.checkboxRow}
+                  activeOpacity={0.8}
+                  onPress={() => setToolsChecked(!toolsChecked)}
+                >
+                  <View style={[styles.checkbox, toolsChecked && styles.checkboxActive]}>
+                    {toolsChecked && <AppIcon name="check" size={12} className="text-white" />}
+                  </View>
+                  <Text style={styles.checkboxLabel}>
+                    I own professional grade tools and personal protective equipment (PPE).
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* STEP 4: DOC UPLOAD */}
+            {step === 4 && (
+              <View style={styles.formSection}>
+                <Text style={styles.sectionHeader}>Upload Verification Photos</Text>
+                <Text style={styles.sectionDesc}>
+                  Selfie for in-app badge and photo of physical Aadhaar card.
+                </Text>
+
+                <View style={styles.uploadCardsRow}>
+                  <TouchableOpacity
+                    style={[styles.uploadBox, aadhaarUploaded && styles.uploadBoxDone]}
+                    onPress={() => setAadhaarUploaded(!aadhaarUploaded)}
+                  >
+                    <AppIcon name="file" size={20} className={aadhaarUploaded ? 'text-[#1E7A34]' : 'text-[#6B7280]'} />
+                    <Text style={styles.uploadTitle}>Aadhaar Card Photo</Text>
+                    <Text style={styles.uploadStatus}>
+                      {aadhaarUploaded ? '✓ Attached' : 'Tap to upload'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.uploadBox, selfieUploaded && styles.uploadBoxDone]}
+                    onPress={() => setSelfieUploaded(!selfieUploaded)}
+                  >
+                    <AppIcon name="camera" size={20} className={selfieUploaded ? 'text-[#1E7A34]' : 'text-[#6B7280]'} />
+                    <Text style={styles.uploadTitle}>Live Clear Selfie</Text>
+                    <Text style={styles.uploadStatus}>
+                      {selfieUploaded ? '✓ Attached' : 'Tap to capture'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Action Footer */}
+          <View style={styles.footer}>
+            <View style={styles.actionRow}>
+              {/* Skip particular step button */}
+              <TouchableOpacity
+                onPress={handleSkipCurrentStep}
+                style={styles.skipStepButton}
+              >
+                <Text style={styles.skipStepText}>Skip this Step</Text>
+              </TouchableOpacity>
+
+              {/* Continue / Finish button */}
+              <TouchableOpacity
+                onPress={handleNext}
+                style={styles.primaryButton}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {step === 4 ? 'Submit Verification' : 'Save & Continue'}
+                </Text>
+                <AppIcon name="chevron-right" size={15} className="text-white" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Do this later option */}
+            <TouchableOpacity
+              onPress={handleSkipEntireVerification}
+              style={styles.doLaterButton}
+            >
+              <Text style={styles.doLaterText}>I'll complete verification later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFill,
+  },
+  modalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '100%',
+    maxWidth: 410,
+    maxHeight: '90%',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  shieldIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E9F6EC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  subtitle: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 1,
+  },
+  closeBtn: {
+    padding: 6,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#F9FAFB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: 6,
+  },
+  stepTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  stepTabActive: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#111111',
+  },
+  stepTabDone: {
+    backgroundColor: '#E9F6EC',
+  },
+  stepNum: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+  stepNumActive: {
+    color: '#111111',
+  },
+  stepNumDone: {
+    color: '#1E7A34',
+  },
+  stepTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  stepTitleActive: {
+    color: '#111111',
+    fontWeight: '700',
+  },
+  scrollBody: {
+    maxHeight: 380,
+  },
+  bodyContent: {
+    padding: 16,
+  },
+  formSection: {
+    gap: 12,
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  sectionDesc: {
+    fontSize: 12.5,
+    color: '#6B7280',
+    lineHeight: 18,
+  },
+  fieldGroup: {
+    gap: 6,
+  },
+  fieldLabel: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#374151',
+    textTransform: 'uppercase',
+  },
+  textInput: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111111',
+    backgroundColor: '#F9FAFB',
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#E9F6EC',
+    padding: 10,
+    borderRadius: 10,
+  },
+  infoText: {
+    fontSize: 11.5,
+    color: '#1E7A34',
+    flex: 1,
+  },
+  skipNotice: {
+    backgroundColor: '#FEF9C3',
+    padding: 10,
+    borderRadius: 10,
+  },
+  skipNoticeText: {
+    fontSize: 12,
+    color: '#854D0E',
+    lineHeight: 16,
+  },
+  boldText: {
+    fontWeight: '700',
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 6,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: '#111111',
+    borderColor: '#111111',
+  },
+  checkboxLabel: {
+    fontSize: 12.5,
+    color: '#374151',
+    flex: 1,
+  },
+  uploadCardsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  uploadBox: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#D1D5DB',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    gap: 6,
+  },
+  uploadBoxDone: {
+    borderColor: '#1E7A34',
+    backgroundColor: '#E9F6EC',
+    borderStyle: 'solid',
+  },
+  uploadTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111111',
+    textAlign: 'center',
+  },
+  uploadStatus: {
+    fontSize: 11,
+    color: '#6B7280',
+  },
+  footer: {
+    padding: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 8,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  skipStepButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  skipStepText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  primaryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#111111',
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  doLaterButton: {
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  doLaterText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textDecorationLine: 'underline',
+  },
+});

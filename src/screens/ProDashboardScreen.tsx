@@ -7,14 +7,14 @@ interface ProDashboardScreenProps {
   userSession?: UserSession;
   onExit: () => void;
   onToast: (msg: string) => void;
-  onSwitchRole?: () => void;
+  onLogout: () => void;
 }
 
 export const ProDashboardScreen: React.FC<ProDashboardScreenProps> = ({
   userSession,
   onExit,
   onToast,
-  onSwitchRole,
+  onLogout,
 }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [activeTab, setActiveTab] = useState<'leads' | 'earnings' | 'schedule' | 'reviews'>('leads');
@@ -150,14 +150,14 @@ export const ProDashboardScreen: React.FC<ProDashboardScreenProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5">
-            {onSwitchRole && (
-              <button
-                onClick={onSwitchRole}
-                className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[11.5px] font-bold transition-colors"
-              >
-                Switch Role
-              </button>
-            )}
+            <button
+              onClick={onLogout}
+              className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#C23B3B] text-white text-[11.5px] font-bold transition-colors flex items-center gap-1 shadow-xs"
+              title="Log out from OnnCall"
+            >
+              <AppIcon name="logout" size={13} />
+              <span>Logout</span>
+            </button>
             <button
               onClick={onExit}
               className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11.5px] font-bold transition-colors"

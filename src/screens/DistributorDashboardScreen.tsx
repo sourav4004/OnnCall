@@ -4,13 +4,15 @@ import { AppIcon } from '../components/AppIcon';
 
 interface DistributorDashboardScreenProps {
   userSession: UserSession;
-  onSwitchRole: () => void;
+  onLogout: () => void;
+  onExit?: () => void;
   onToast: (msg: string) => void;
 }
 
 export const DistributorDashboardScreen: React.FC<DistributorDashboardScreenProps> = ({
   userSession,
-  onSwitchRole,
+  onLogout,
+  onExit,
   onToast,
 }) => {
   const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'analytics'>('orders');
@@ -85,12 +87,24 @@ export const DistributorDashboardScreen: React.FC<DistributorDashboardScreenProp
             </div>
           </div>
 
-          <button
-            onClick={onSwitchRole}
-            className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[11.5px] font-bold transition-colors"
-          >
-            Switch Role
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={onLogout}
+              className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#C23B3B] text-white text-[11.5px] font-bold transition-colors flex items-center gap-1 shadow-xs"
+              title="Log out from OnnCall"
+            >
+              <AppIcon name="logout" size={13} />
+              <span>Logout</span>
+            </button>
+            {onExit && (
+              <button
+                onClick={onExit}
+                className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11.5px] font-bold transition-colors"
+              >
+                Customer View
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Quick Metrics Bar */}

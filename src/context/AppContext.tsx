@@ -9,6 +9,7 @@ import {
   CreateBookingPayload,
 } from '../types';
 import { serviceApi } from '../services/api';
+import { bugDetector } from '../services/bugDetector';
 
 interface AppContextValue {
   categories: ServiceCategory[];
@@ -64,6 +65,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loadData = async () => {
     setIsLoading(true);
     try {
+      bugDetector.init();
       const [catsRes, prosRes, addrsRes, booksRes, chatsRes, notifsRes] = await Promise.all([
         serviceApi.getCategories(),
         serviceApi.getProfessionals(),
@@ -84,8 +86,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (booksRes.success) setBookings(booksRes.data);
       if (chatsRes.success) setChats(chatsRes.data);
       if (notifsRes.success) setNotifications(notifsRes.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to bootstrap app data:', err);
+      bugDetector.reportBug({
+        category: 'RUNTIME_EXCEPTION',
+        message: 'Failed to bootstrap initial app data: ' + (err.message || String(err)),
+        error: { name: err.name, message: err.message, stack: err.stack },
+        suggestedFix: 'Verify backend API endpoints are responding and network connectivity is intact.',
+      });
     } finally {
       setIsLoading(false);
     }

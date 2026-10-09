@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { TabType } from '../types';
 import { AppIcon } from './AppIcon';
 
@@ -22,42 +23,122 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="sticky bottom-0 z-30 w-full bg-white border-t border-[#E5E5E5] px-2 pt-2 pb-3 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-      <div className="grid grid-cols-5 items-center max-w-md mx-auto">
+    <View style={styles.navContainer}>
+      <View style={styles.tabGrid}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <TouchableOpacity
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className="group flex flex-col items-center justify-center min-h-[48px] py-1 transition-transform active:scale-95"
-              aria-label={tab.label}
+              onPress={() => onTabChange(tab.id)}
+              activeOpacity={0.7}
+              style={styles.tabButton}
+              accessibilityRole="button"
+              accessibilityLabel={tab.label}
             >
-              <div className="relative">
-                <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
-                    isActive ? 'text-[#111111]' : 'text-[#888888] group-hover:text-[#444444]'
-                  }`}
+              <View style={styles.iconWrapper}>
+                <View
+                  style={[
+                    styles.iconCircle,
+                    {
+                      backgroundColor: isActive ? '#111111' : 'transparent',
+                    },
+                  ]}
                 >
-                  <AppIcon name={tab.icon} size={22} />
-                </div>
+                  <AppIcon
+                    name={tab.icon}
+                    size={20}
+                    className={isActive ? 'text-white' : 'text-[#888888]'}
+                  />
+                </View>
                 {tab.id === 'inbox' && unreadChatCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-[#111111] text-[10px] font-bold text-white ring-2 ring-white">
-                    {unreadChatCount}
-                  </span>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{unreadChatCount}</Text>
+                  </View>
                 )}
-              </div>
-              <span
-                className={`text-[11px] font-semibold tracking-tight transition-colors ${
-                  isActive ? 'text-[#111111]' : 'text-[#888888]'
-                }`}
+              </View>
+              <Text
+                style={[
+                  styles.tabLabel,
+                  {
+                    color: isActive ? '#111111' : '#888888',
+                    fontWeight: isActive ? '700' : '500',
+                  },
+                ]}
               >
                 {tab.label}
-              </span>
-            </button>
+              </Text>
+            </TouchableOpacity>
           );
         })}
-      </div>
-    </nav>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  navContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    paddingTop: 8,
+    paddingBottom: 12,
+    paddingHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  tabGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    maxWidth: 430,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 2,
+    minHeight: 46,
+  },
+  iconWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transitionDuration: '150ms',
+  } as any,
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  tabLabel: {
+    fontSize: 11,
+    marginTop: 3,
+    letterSpacing: -0.2,
+  },
+});

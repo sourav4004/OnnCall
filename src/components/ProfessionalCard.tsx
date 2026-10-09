@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Professional } from '../types';
 import { AppIcon } from './AppIcon';
 
@@ -26,117 +27,228 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
   };
 
   return (
-    <div
-      onClick={() => onSelect(pro)}
-      className="group relative bg-white border border-[#E5E5E5] rounded-2xl p-4 transition-all duration-150 hover:border-[#111111]/30 hover:shadow-sm cursor-pointer"
+    <TouchableOpacity
+      activeOpacity={0.88}
+      onPress={() => onSelect(pro)}
+      style={styles.card}
     >
-      <div className="flex items-start gap-3.5">
+      <View style={styles.headerRow}>
         {/* Avatar */}
-        <div className="relative shrink-0">
-          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-[16px] font-bold text-[#111111]">
-            {getInitials(pro.name)}
-          </div>
+        <View style={styles.avatarWrapper}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{getInitials(pro.name)}</Text>
+          </View>
           {pro.isVerified && (
-            <div
-              title="Verified Professional"
-              className="absolute -bottom-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-[#1E7A34] text-white ring-2 ring-white shadow-xs"
-            >
-              <AppIcon name="check" size={12} />
-            </div>
+            <View style={styles.verifiedBadge}>
+              <AppIcon name="check" size={10} className="text-white" />
+            </View>
           )}
-        </div>
+        </View>
 
         {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <h4 className="text-[15px] font-bold text-[#111111] truncate">{pro.name}</h4>
-              {pro.isVerified && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-[#E9F6EC] text-[#1E7A34] border border-[#1E7A34]/20 shrink-0">
-                  Verified
-                </span>
-              )}
-            </div>
+        <View style={styles.infoWrapper}>
+          <View style={styles.nameRow}>
+            <Text style={styles.nameText} numberOfLines={1}>
+              {pro.name}
+            </Text>
             {onToggleFavorite && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleFavorite(pro.id);
-                }}
-                className="flex items-center justify-center w-8 h-8 -mr-1.5 -mt-1 text-[#888888] hover:text-[#C23B3B] transition-colors"
-                aria-label="Save to favorites"
+              <TouchableOpacity
+                onPress={() => onToggleFavorite(pro.id)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.favButton}
               >
                 <AppIcon
                   name="heart"
-                  size={18}
-                  className={isFavorite ? 'fill-[#C23B3B] text-[#C23B3B]' : ''}
+                  size={16}
+                  className={isFavorite ? 'fill-[#E11D48] text-[#E11D48]' : 'text-[#A3A3A3]'}
                 />
-              </button>
+              </TouchableOpacity>
             )}
-          </div>
+          </View>
 
-          <p className="text-[12.5px] font-medium text-[#6B6B6B] truncate -mt-0.5">{pro.role}</p>
+          <Text style={styles.specialtyText} numberOfLines={1}>
+            {pro.role}
+          </Text>
 
-          {/* Metadata */}
-          <div className="flex items-center gap-2 mt-1.5 text-[12px] text-[#6B6B6B]">
-            <span className="inline-flex items-center gap-1 font-bold text-[#111111]">
-              <AppIcon name="star" size={13} className="fill-[#EAB308] text-[#EAB308]" />
-              {pro.rating.toFixed(1)}
-            </span>
-            <span className="text-[#999999]">·</span>
-            <span>{pro.completedJobs} jobs</span>
-            <span className="text-[#999999]">·</span>
-            <span>{pro.distanceKm} km</span>
-          </div>
+          {/* Rating, Experience & Distance */}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <AppIcon name="star" size={13} className="text-[#EAB308] fill-[#EAB308]" />
+              <Text style={styles.metaText}>{pro.rating}</Text>
+              <Text style={styles.metaSubText}>({pro.reviewsCount})</Text>
+            </View>
+            <Text style={styles.dot}>•</Text>
+            <Text style={styles.metaSubText}>{pro.experienceYears} yrs exp</Text>
+            <Text style={styles.dot}>•</Text>
+            <Text style={styles.metaSubText}>{pro.distanceKm} km</Text>
+          </View>
+        </View>
+      </View>
 
-          {/* Availability & Starting Price */}
-          <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#F5F5F5]">
-            <div className="flex items-center gap-1.5">
-              <span
-                className={`inline-block w-2 h-2 rounded-full ${
-                  pro.isAvailableToday ? 'bg-[#1E7A34]' : 'bg-[#999999]'
-                }`}
-              />
-              <span
-                className={`text-[11.5px] font-medium ${
-                  pro.isAvailableToday ? 'text-[#1E7A34]' : 'text-[#888888]'
-                }`}
-              >
-                {pro.isAvailableToday ? 'Available today' : 'Next day'}
-              </span>
-            </div>
+      {/* Pricing & CTA */}
+      <View style={styles.footerRow}>
+        <View>
+          <Text style={styles.priceLabel}>Starting from</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceText}>₹{pro.hourlyRate}</Text>
+            <Text style={styles.priceUnit}>/ visit</Text>
+          </View>
+        </View>
 
-            <div className="text-[13px] font-bold text-[#111111]">
-              From ₹{pro.hourlyRate}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#F5F5F5]">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect(pro);
-          }}
-          className="flex items-center justify-center h-9 px-3 rounded-xl border border-[#E5E5E5] bg-white text-[12.5px] font-semibold text-[#111111] hover:bg-[#F5F5F5] active:scale-98 transition-all"
-        >
-          View Profile
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={(e) => {
+            e.stopPropagation?.();
             onBookNow(pro);
           }}
-          className="flex items-center justify-center h-9 px-3 rounded-xl bg-[#111111] text-[12.5px] font-semibold text-white hover:bg-black active:scale-98 transition-all"
+          style={styles.bookButton}
         >
-          Book Now
-        </button>
-      </div>
-    </div>
+          <Text style={styles.bookButtonText}>Book Slot</Text>
+          <AppIcon name="chevron-right" size={14} className="text-white" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#1E7A34',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  infoWrapper: {
+    flex: 1,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  nameText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
+    flex: 1,
+  },
+  favButton: {
+    padding: 2,
+    marginLeft: 6,
+  },
+  specialtyText: {
+    fontSize: 12.5,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  metaText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  metaSubText: {
+    fontSize: 11.5,
+    color: '#6B7280',
+  },
+  dot: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginHorizontal: 4,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  priceLabel: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: 1,
+  },
+  priceText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  priceUnit: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginLeft: 2,
+  },
+  bookButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    gap: 4,
+  },
+  bookButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+});

@@ -601,7 +601,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               onClick={onSwitchToProvider}
               className="mt-3.5 w-full h-10 rounded-xl bg-white text-[#111111] text-[12.5px] font-extrabold flex items-center justify-center gap-1.5 hover:bg-[#F5F5F5] active:scale-95 transition-all shadow-xs"
             >
-              <span>Switch to Service Provider Portal</span>
+              <span>Service Provider & Partner Portal</span>
               <AppIcon name="chevron-right" size={14} />
             </button>
           </div>

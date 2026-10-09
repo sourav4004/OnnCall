@@ -1,4 +1,14 @@
 import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { ChatThread } from '../types';
 import { AppIcon } from '../components/AppIcon';
 
@@ -24,97 +34,281 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#FAFAFA]">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {/* Top Header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-[#EFEFEF] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={onBack}
-            className="flex items-center justify-center w-10 h-10 -ml-1 rounded-full text-[#111111] hover:bg-[#F5F5F5] active:scale-95 transition-all"
-            aria-label="Back"
-          >
-            <AppIcon name="arrow-left" size={22} />
-          </button>
-          <div className="w-10 h-10 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] text-[14px] font-bold text-[#111111] flex items-center justify-center">
-            {thread.proName[0]}
-          </div>
-          <div>
-            <h2 className="text-[15px] font-bold text-[#111111] leading-tight">
-              {thread.proName}
-            </h2>
-            <p className="text-[11.5px] text-[#1E7A34] font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#1E7A34]" />
-              Online · {thread.proRole}
-            </p>
-          </div>
-        </div>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <AppIcon name="arrow-left" size={20} className="text-[#111111]" />
+          </TouchableOpacity>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{thread.proName[0]}</Text>
+          </View>
+          <View>
+            <Text style={styles.headerTitle}>{thread.proName}</Text>
+            <View style={styles.onlineStatusRow}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.onlineText}>Online · {thread.proRole}</Text>
+            </View>
+          </View>
+        </View>
 
-        <button
-          onClick={() => onCallPro(thread.proName)}
-          className="flex items-center justify-center w-10 h-10 rounded-full border border-[#E5E5E5] text-[#111111] hover:bg-[#F5F5F5] active:scale-95 transition-all"
-          aria-label="Call"
+        <TouchableOpacity
+          onPress={() => onCallPro(thread.proName)}
+          style={styles.callButton}
         >
-          <AppIcon name="phone" size={18} />
-        </button>
-      </div>
+          <AppIcon name="phone" size={17} className="text-[#111111]" />
+        </TouchableOpacity>
+      </View>
 
       {/* Messages Feed */}
-      <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3">
-        <div className="text-center my-2">
-          <span className="text-[11px] font-semibold text-[#888888] bg-white border border-[#E5E5E5] px-3 py-1 rounded-full">
+      <ScrollView
+        style={styles.messagesContainer}
+        contentContainerStyle={styles.messagesContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.securityBadgeWrapper}>
+          <Text style={styles.securityBadge}>
             All messages are end-to-end coordinated
-          </span>
-        </div>
+          </Text>
+        </View>
 
         {thread.messages.map((msg) => {
           const isUser = msg.sender === 'user';
           return (
-            <div
+            <View
               key={msg.id}
-              className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+              style={[
+                styles.messageRow,
+                isUser ? styles.messageRowUser : styles.messageRowOther,
+              ]}
             >
-              <div
-                className={`max-w-[78%] p-3.5 rounded-2xl text-[13.5px] leading-relaxed ${
-                  isUser
-                    ? 'bg-[#111111] text-white rounded-br-xs shadow-xs'
-                    : 'bg-white text-[#111111] border border-[#E5E5E5] rounded-bl-xs shadow-xs'
-                }`}
+              <View
+                style={[
+                  styles.bubble,
+                  isUser ? styles.bubbleUser : styles.bubbleOther,
+                ]}
               >
-                <p>{msg.text}</p>
-                <span
-                  className={`block text-[10px] mt-1 text-right ${
-                    isUser ? 'text-white/70' : 'text-[#888888]'
-                  }`}
+                <Text
+                  style={[
+                    styles.messageText,
+                    isUser ? styles.messageTextUser : styles.messageTextOther,
+                  ]}
+                >
+                  {msg.text}
+                </Text>
+                <Text
+                  style={[
+                    styles.timeText,
+                    isUser ? styles.timeTextUser : styles.timeTextOther,
+                  ]}
                 >
                   {msg.timestamp}
-                </span>
-              </div>
-            </div>
+                </Text>
+              </View>
+            </View>
           );
         })}
-      </div>
+      </ScrollView>
 
       {/* Message Input Box */}
-      <div className="sticky bottom-0 bg-white border-t border-[#E5E5E5] p-3 flex items-center gap-2">
-        <input
-          type="text"
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSend();
-          }}
+          onChangeText={setInputText}
           placeholder={`Message ${thread.proName.split(' ')[0]}...`}
-          className="flex-1 py-2.5 px-4 rounded-xl bg-[#F5F5F5] border border-[#E5E5E5] text-[13.5px] text-[#111111] placeholder:text-[#888888] focus:outline-hidden focus:border-[#111111] focus:bg-white"
+          placeholderTextColor="#888888"
+          onSubmitEditing={handleSend}
+          returnKeyType="send"
         />
-        <button
-          onClick={handleSend}
+        <TouchableOpacity
+          onPress={handleSend}
           disabled={!inputText.trim()}
-          className="w-11 h-11 rounded-xl bg-[#111111] text-white flex items-center justify-center disabled:opacity-40 hover:bg-black active:scale-95 transition-all shrink-0"
-          aria-label="Send"
+          style={[
+            styles.sendButton,
+            !inputText.trim() && styles.sendButtonDisabled,
+          ]}
         >
-          <AppIcon name="send" size={17} />
-        </button>
-      </div>
-    </div>
+          <AppIcon name="send" size={16} className="text-white" />
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  backButton: {
+    padding: 6,
+    marginLeft: -4,
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111111',
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  onlineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 1,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#1E7A34',
+  },
+  onlineText: {
+    fontSize: 11,
+    color: '#1E7A34',
+    fontWeight: '600',
+  },
+  callButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  messagesContainer: {
+    flex: 1,
+  },
+  messagesContent: {
+    padding: 16,
+    gap: 12,
+  },
+  securityBadgeWrapper: {
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  securityBadge: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#888888',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  messageRow: {
+    flexDirection: 'row',
+  },
+  messageRowUser: {
+    justifyContent: 'flex-end',
+  },
+  messageRowOther: {
+    justifyContent: 'flex-start',
+  },
+  bubble: {
+    maxWidth: '78%',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  bubbleUser: {
+    backgroundColor: '#111111',
+    borderBottomRightRadius: 4,
+  },
+  bubbleOther: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    fontSize: 13.5,
+    lineHeight: 19,
+  },
+  messageTextUser: {
+    color: '#FFFFFF',
+  },
+  messageTextOther: {
+    color: '#111111',
+  },
+  timeText: {
+    fontSize: 10,
+    marginTop: 4,
+    textAlign: 'right',
+  },
+  timeTextUser: {
+    color: 'rgba(255,255,255,0.7)',
+  },
+  timeTextOther: {
+    color: '#9CA3AF',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    height: 42,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 13.5,
+    color: '#111111',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  sendButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#111111',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.4,
+  },
+});

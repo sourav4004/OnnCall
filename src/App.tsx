@@ -110,12 +110,7 @@ function MainApp() {
     setUserSession(null);
     setViewStack([{ type: 'tabs' }]);
     setActiveTab('home');
-    showToast('Logged out. Viewing Customer Landing Page as guest.');
-  };
-
-  const handleSwitchRole = () => {
-    setViewStack([{ type: 'auth' }]);
-    showToast('Select your active role');
+    showToast('Logged out successfully.');
   };
 
   // Sheets & Modals
@@ -323,7 +318,6 @@ function MainApp() {
                   onOpenHelpSupport={() => setIsHelpSheetOpen(true)}
                   onOpenEmergency={() => setIsEmergencySheetOpen(true)}
                   onSwitchToProMode={() => pushView({ type: 'pro_dashboard' })}
-                  onSwitchRole={handleSwitchRole}
                   onOpenPrivacyTerms={(title) => showToast(`Opening ${title}...`)}
                   onToast={showToast}
                   onLogout={handleLogout}
@@ -428,7 +422,7 @@ function MainApp() {
                 setViewStack([{ type: 'tabs' }]);
                 setActiveTab('home');
               }}
-              onSwitchRole={handleSwitchRole}
+              onLogout={handleLogout}
               onToast={showToast}
             />
           )}
@@ -446,7 +440,11 @@ function MainApp() {
                   businessName: 'Metro Hardware & Paints Wholesale',
                 }
               }
-              onSwitchRole={handleSwitchRole}
+              onExit={() => {
+                setViewStack([{ type: 'tabs' }]);
+                setActiveTab('home');
+              }}
+              onLogout={handleLogout}
               onToast={showToast}
             />
           )}
